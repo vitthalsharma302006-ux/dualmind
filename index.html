@@ -412,7 +412,31 @@
 
         let currentMode = 'ai';
         let chatHistory = [];
-        let conversationHistory = [];
+
+        // Mock AI Responses Database
+        const aiResponses = {
+            'farming': 'Modern farming combines traditional knowledge with technology. Key practices include: proper soil management, crop rotation, efficient irrigation, and pest management. Using sensors and data analytics can optimize yields and reduce resource waste.',
+            'tomato': 'Tomatoes thrive in warm conditions (21-24°C). Plant in well-draining soil with 6-8 hours of sunlight daily. Water consistently but avoid waterlogging. Use stakes or cages for support. Harvest when fully colored but still slightly firm.',
+            'crop': 'Successful crop cultivation depends on several factors: soil quality, water availability, climate conditions, proper spacing, and timely harvesting. Different crops have different requirements. Research your specific crop for best results.',
+            'cotton': 'Cotton requires warm climate, well-drained soil, and 4-5 months of frost-free season. It needs regular watering especially during flowering. Pest management is crucial. Yields improve with proper fertilization and crop rotation.',
+            'seasonal': 'Seasonal crops vary by region. Summer crops: tomatoes, peppers, cucumbers. Winter crops: lettuce, spinach, broccoli. Spring/Fall: beans, peas, squash. Plan rotation to maintain soil health and reduce pest buildup.',
+            'weather': 'Climate and weather patterns are critical for farming. Monitor rainfall, temperature, and frost dates. Use weather forecasts to plan irrigation and harvesting. Climate-resilient practices help cope with unpredictable weather.',
+            'soil': 'Healthy soil is foundation of good farming. Test soil pH and nutrients regularly. Add organic matter through compost. Avoid compaction. Practice conservation tillage. Good soil structure improves water retention and root growth.',
+            'water': 'Irrigation efficiency saves water and money. Drip irrigation is more efficient than flooding. Water in early morning to reduce evaporation. Monitor soil moisture. In rainy season, ensure proper drainage to prevent waterlogging.',
+            'default': 'That\'s an interesting question! In agriculture, success comes from combining knowledge of your local climate, soil conditions, and crop requirements. Each farm is unique, so adapt practices to your specific situation. Would you like specific advice on any farming aspect?'
+        };
+
+        const humanResponses = {
+            'farming': 'From my years farming, I\'ve learned that listening to your plants and soil tells you more than any book. I check my fields daily, observe pest activity, and adjust my approach. Building relationships with local farmers helps too - they know what works in our climate.',
+            'tomato': 'I grow tomatoes every year. The key is starting with good seedlings and planting after frost. I stake them early and prune side shoots. The hardest part is managing diseases, so good air circulation helps. I always save seeds from the best plants.',
+            'crop': 'Farming isn\'t just about planting and harvesting. You need to understand your land - its slopes, wet areas, soil color. I\'ve made mistakes and learned from them. Talk to old farmers in your area; they\'ve seen drought, pests, and bad seasons.',
+            'cotton': 'Cotton is profitable but demanding. I\'ve seen entire seasons fail due to unexpected pests or rainfall. You need to be vigilant and willing to spend time in the fields. It\'s physical work, but seeing those white bolls makes it worthwhile.',
+            'seasonal': 'I plan my calendar based on what I\'ve grown before. Different crops teach you different lessons. Some years my timing is off, but I keep notes. Local weather patterns are your best guide - watch what your neighbors grow.',
+            'weather': 'Weather is unpredictable. I\'ve prepared irrigation for drought that never came, and crops failed from unexpected rain. You must be flexible and have backup plans. Insurance and diversification help manage weather risk.',
+            'soil': 'My grandfather always said "respect the soil." I\'ve learned that resting land is as important as using it. I rotate crops and add manure. Every season, my soil gets better. It\'s a slow process, but it pays off long-term.',
+            'water': 'Water management is crucial where I farm. Some years abundant, some scarce. I\'ve invested in better irrigation and mulching. I also watch how water flows in my field during rain - understanding this helps prevent erosion and flooding.',
+            'default': 'Every farm is different. What worked for me might not work for you. The best approach is to start small, observe carefully, and be patient. Farming teaches humility - nature always has surprises!'
+        };
 
         modeButtons.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -440,55 +464,37 @@
         sendBtn.addEventListener('click', sendMessage);
         newChatBtn.addEventListener('click', newChat);
 
-        async function sendMessage() {
+        function getMockResponse(userMessage) {
+            const message = userMessage.toLowerCase();
+            const responses = currentMode === 'ai' ? aiResponses : humanResponses;
+
+            // Check for keywords in the message
+            for (const [keyword, response] of Object.entries(responses)) {
+                if (keyword !== 'default' && message.includes(keyword)) {
+                    return response;
+                }
+            }
+
+            return responses.default;
+        }
+
+        function sendMessage() {
             const message = inputEl.value.trim();
             if (!message) return;
 
             addMessage('user', message);
-            conversationHistory.push({ role: 'user', content: message });
             inputEl.value = '';
             inputEl.style.height = 'auto';
             sendBtn.disabled = true;
 
-            const loadingMsg = addMessage(currentMode, '');
-            const loadingContent = loadingMsg.querySelector('.message-content');
-            loadingContent.innerHTML = '<div class="loading"><span></span><span></span><span></span></div>';
-
-            try {
-                const response = await fetch('https://api.anthropic.com/v1/messages', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-api-key': '',
-                    },
-                    body: JSON.stringify({
-                        model: 'claude-sonnet-4-20250514',
-                        max_tokens: 1000,
-                        system: getSystemPrompt(),
-                        messages: conversationHistory,
-                    }),
-                });
-
-                const data = await response.json();
-                const assistantMessage = data.content[0].text;
-                conversationHistory.push({ role: 'assistant', content: assistantMessage });
-
-                loadingContent.textContent = assistantMessage;
+            // Simulate typing delay
+            setTimeout(() => {
+                const mockResponse = getMockResponse(message);
+                addMessage(currentMode, mockResponse);
                 addToChatHistory(message);
-            } catch (error) {
-                loadingContent.textContent = 'To use this app with live AI responses, you need to integrate an API key or use it in the Claude.ai environment.';
-            }
-
-            sendBtn.disabled = false;
-            messagesEl.scrollTop = messagesEl.scrollHeight;
-        }
-
-        function getSystemPrompt() {
-            if (currentMode === 'ai') {
-                return `You are DualMind AI, an expert knowledge assistant. Provide accurate, helpful, and practical information based on research, data, and best practices. Be concise, clear, and direct.`;
-            } else {
-                return `You are DualMind Human Experience Guide. Share real-world perspectives and experiences from actual people. Use conversational language and relay practical insights from real-life situations.`;
-            }
+                sendBtn.disabled = false;
+                messagesEl.scrollTop = messagesEl.scrollHeight;
+            }, 800);
         }
 
         function addMessage(type, content) {
@@ -557,7 +563,6 @@
                     <p>Ask anything you want</p>
                 </div>
             `;
-            conversationHistory = [];
             inputEl.value = '';
             inputEl.style.height = 'auto';
         }
