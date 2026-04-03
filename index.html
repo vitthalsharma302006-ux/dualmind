@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DualMind</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            background: radial-gradient(circle at 20% 50%, rgba(255, 200, 100, 0.15) 0%, transparent 50%), 
+                        radial-gradient(circle at 80% 80%, rgba(255, 220, 150, 0.1) 0%, transparent 50%),
+                        linear-gradient(135deg, #faf8f5 0%, #f5f3f0 100%);
+            color: #3a3a3a;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: rgba(254, 253, 251, 0.95);
+            border-right: 1px solid #e8e4df;
+            display: flex;
+            flex-direction: column;
+            padding: 24px 16px;
+            overflow-y: auto;
+        }
+
+        .logo {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2a2a2a;
+            margin-bottom: 28px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 28px;
+            background: #f5f3f0;
+            padding: 4px;
+            border-radius: 8px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            background: transparent;
+            color: #888;
+        }
+
+        .mode-btn.active {
+            background: #fefdfb;
+            color: #2a2a2a;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .mode-indicator {
+            font-size: 12px;
+            color: #999;
+            text-align: center;
+            padding: 8px;
+            margin-bottom: 12px;
+        }
+
+        .history-section h3 {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #999;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            margin-top: 20px;
+        }
+
+        .history-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #666;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-item:hover {
+            background: #f5f3f0;
+            color: #2a2a2a;
+            border-color: #e8e4df;
+        }
+
+        .new-chat-btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: auto;
+            background: #2a2a2a;
+            color: #faf8f5;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .new-chat-btn:hover {
+            background: #1a1a1a;
+        }
+
+        .new-chat-btn:active {
+            transform: scale(0.98);
+        }
+
+        .chat-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .messages::-webkit-scrollbar-thumb {
+            background: #d4cfc8;
+            border-radius: 3px;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            color: #999;
+        }
+
+        .empty-state h2 {
+            font-size: 28px;
+            color: #3a3a3a;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .empty-state p {
+            font-size: 15px;
+            color: #888;
+        }
+
+        .message {
+            display: flex;
+            gap: 12px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .message-avatar.ai {
+            background: #e8ddd5;
+            color: #7a6f68;
+        }
+
+        .message-avatar.human {
+            background: #dfe8e0;
+            color: #6a7a6b;
+        }
+
+        .message-avatar.user {
+            background: #d5e8e8;
+            color: #6a7a7f;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 14px 16px;
+            border-radius: 12px;
+            line-height: 1.6;
+            font-size: 14px;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-content {
+            background: #2a2a2a;
+            color: #faf8f5;
+        }
+
+        .message.ai .message-content {
+            background: #fefdfb;
+            border: 1px solid #e8e4df;
+            color: #3a3a3a;
+        }
+
+        .message.human .message-content {
+            background: #f5f3f0;
+            border: 1px solid #e8e4df;
+            color: #3a3a3a;
+        }
+
+        .input-area {
+            padding: 20px 24px;
+            border-top: 1px solid #e8e4df;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        textarea {
+            flex: 1;
+            padding: 12px 14px;
+            background: #fefdfb;
+            border: 1px solid #e8e4df;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            color: #3a3a3a;
+            resize: none;
+            max-height: 100px;
+            transition: all 0.2s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #d4cfc8;
+            box-shadow: 0 0 0 3px rgba(212, 207, 200, 0.1);
+        }
+
+        textarea::placeholder {
+            color: #aaa;
+        }
+
+        .send-btn {
+            width: 40px;
+            height: 40px;
+            background: #2a2a2a;
+            border: none;
+            border-radius: 8px;
+            color: #faf8f5;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .send-btn:hover {
+            background: #1a1a1a;
+        }
+
+        .send-btn:active {
+            transform: scale(0.95);
+        }
+
+        .send-btn:disabled {
+            background: #ddd;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .loading {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .loading span {
+            width: 8px;
+            height: 8px;
+            background: #bbb;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        .loading span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 200px;
+                padding: 16px 12px;
+            }
+            .message-content {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">
+                <span>🧠</span>
+                <span>DualMind</span>
+            </div>
+
+            <div class="mode-selector">
+                <button class="mode-btn active" data-mode="ai">AI Mode</button>
+                <button class="mode-btn" data-mode="human">Human</button>
+            </div>
+
+            <div class="mode-indicator" id="modeIndicator">AI-powered answers</div>
+
+            <div class="history-section">
+                <h3>Chat History</h3>
+                <div id="history"></div>
+            </div>
+
+            <button class="new-chat-btn">+ New Chat</button>
+        </div>
+
+        <div class="chat-section">
+            <div class="messages" id="messages">
+                <div class="empty-state">
+                    <h2>DualMind</h2>
+                    <p>Ask anything you want</p>
+                </div>
+            </div>
+
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <textarea id="input" placeholder="Ask me anything..." rows="1"></textarea>
+                    <button class="send-btn" id="sendBtn">→</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const messagesEl = document.getElementById('messages');
+        const inputEl = document.getElementById('input');
+        const sendBtn = document.getElementById('sendBtn');
+        const modeButtons = document.querySelectorAll('.mode-btn');
+        const modeIndicator = document.getElementById('modeIndicator');
+        const newChatBtn = document.querySelector('.new-chat-btn');
+
+        let currentMode = 'ai';
+        let chatHistory = [];
+        let conversationHistory = [];
+
+        modeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                modeButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentMode = btn.dataset.mode;
+                modeIndicator.textContent = currentMode === 'ai' 
+                    ? 'AI-powered answers' 
+                    : 'Real human experiences';
+            });
+        });
+
+        inputEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        inputEl.addEventListener('input', () => {
+            inputEl.style.height = 'auto';
+            inputEl.style.height = Math.min(inputEl.scrollHeight, 100) + 'px';
+        });
+
+        sendBtn.addEventListener('click', sendMessage);
+        newChatBtn.addEventListener('click', newChat);
+
+        async function sendMessage() {
+            const message = inputEl.value.trim();
+            if (!message) return;
+
+            addMessage('user', message);
+            conversationHistory.push({ role: 'user', content: message });
+            inputEl.value = '';
+            inputEl.style.height = 'auto';
+            sendBtn.disabled = true;
+
+            const loadingMsg = addMessage(currentMode, '');
+            const loadingContent = loadingMsg.querySelector('.message-content');
+            loadingContent.innerHTML = '<div class="loading"><span></span><span></span><span></span></div>';
+
+            try {
+                const response = await fetch('https://api.anthropic.com/v1/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': '',
+                    },
+                    body: JSON.stringify({
+                        model: 'claude-sonnet-4-20250514',
+                        max_tokens: 1000,
+                        system: getSystemPrompt(),
+                        messages: conversationHistory,
+                    }),
+                });
+
+                const data = await response.json();
+                const assistantMessage = data.content[0].text;
+                conversationHistory.push({ role: 'assistant', content: assistantMessage });
+
+                loadingContent.textContent = assistantMessage;
+                addToChatHistory(message);
+            } catch (error) {
+                loadingContent.textContent = 'To use this app with live AI responses, you need to integrate an API key or use it in the Claude.ai environment.';
+            }
+
+            sendBtn.disabled = false;
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        function getSystemPrompt() {
+            if (currentMode === 'ai') {
+                return `You are DualMind AI, an expert knowledge assistant. Provide accurate, helpful, and practical information based on research, data, and best practices. Be concise, clear, and direct.`;
+            } else {
+                return `You are DualMind Human Experience Guide. Share real-world perspectives and experiences from actual people. Use conversational language and relay practical insights from real-life situations.`;
+            }
+        }
+
+        function addMessage(type, content) {
+            if (messagesEl.querySelector('.empty-state')) {
+                messagesEl.innerHTML = '';
+            }
+
+            const messageEl = document.createElement('div');
+            messageEl.className = `message ${type === 'user' ? 'user' : type}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = `message-avatar ${type}`;
+            
+            if (type === 'user') {
+                avatar.textContent = '👤';
+            } else if (type === 'ai') {
+                avatar.textContent = '🤖';
+            } else {
+                avatar.textContent = '👥';
+            }
+
+            const contentEl = document.createElement('div');
+            contentEl.className = 'message-content';
+            contentEl.textContent = content;
+
+            if (type === 'user') {
+                messageEl.appendChild(contentEl);
+                messageEl.appendChild(avatar);
+            } else {
+                messageEl.appendChild(avatar);
+                messageEl.appendChild(contentEl);
+            }
+
+            messagesEl.appendChild(messageEl);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+
+            return messageEl;
+        }
+
+        function addToChatHistory(message) {
+            if (chatHistory.length >= 10) {
+                chatHistory.shift();
+            }
+            chatHistory.push(message);
+            updateHistoryUI();
+        }
+
+        function updateHistoryUI() {
+            const historyEl = document.getElementById('history');
+            historyEl.innerHTML = chatHistory
+                .slice()
+                .reverse()
+                .map((msg) => `<div class="history-item" onclick="loadFromHistory('${msg.replace(/'/g, "\\'")}')">${msg.substring(0, 30)}...</div>`)
+                .join('');
+        }
+
+        function loadFromHistory(message) {
+            inputEl.value = message;
+            inputEl.focus();
+        }
+
+        function newChat() {
+            messagesEl.innerHTML = `
+                <div class="empty-state">
+                    <h2>DualMind</h2>
+                    <p>Ask anything you want</p>
+                </div>
+            `;
+            conversationHistory = [];
+            inputEl.value = '';
+            inputEl.style.height = 'auto';
+        }
+    </script>
+</body>
+</html>
