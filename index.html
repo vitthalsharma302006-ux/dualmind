@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DualMind</title>
+    <title>DualMind AI - Free ChatGPT Alternative</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -12,9 +13,8 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: radial-gradient(circle at 20% 50%, rgba(255, 200, 100, 0.15) 0%, transparent 50%), 
-                        radial-gradient(circle at 80% 80%, rgba(255, 220, 150, 0.1) 0%, transparent 50%),
                         linear-gradient(135deg, #faf8f5 0%, #f5f3f0 100%);
             color: #3a3a3a;
             height: 100vh;
@@ -48,70 +48,12 @@
             gap: 8px;
         }
 
-        .mode-selector {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 28px;
-            background: #f5f3f0;
-            padding: 4px;
-            border-radius: 8px;
-        }
-
-        .mode-btn {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            background: transparent;
-            color: #888;
-        }
-
-        .mode-btn.active {
-            background: #fefdfb;
-            color: #2a2a2a;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-        }
-
         .mode-indicator {
             font-size: 12px;
             color: #999;
             text-align: center;
             padding: 8px;
             margin-bottom: 12px;
-        }
-
-        .history-section h3 {
-            font-size: 12px;
-            text-transform: uppercase;
-            color: #999;
-            letter-spacing: 0.5px;
-            margin-bottom: 12px;
-            margin-top: 20px;
-        }
-
-        .history-item {
-            padding: 12px;
-            margin-bottom: 8px;
-            background: transparent;
-            border: 1px solid transparent;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
-            color: #666;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .history-item:hover {
-            background: #f5f3f0;
-            color: #2a2a2a;
-            border-color: #e8e4df;
         }
 
         .new-chat-btn {
@@ -130,10 +72,6 @@
 
         .new-chat-btn:hover {
             background: #1a1a1a;
-        }
-
-        .new-chat-btn:active {
-            transform: scale(0.98);
         }
 
         .chat-section {
@@ -155,10 +93,6 @@
             width: 6px;
         }
 
-        .messages::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
         .messages::-webkit-scrollbar-thumb {
             background: #d4cfc8;
             border-radius: 3px;
@@ -171,11 +105,10 @@
             justify-content: center;
             height: 100%;
             text-align: center;
-            color: #999;
         }
 
         .empty-state h2 {
-            font-size: 28px;
+            font-size: 32px;
             color: #3a3a3a;
             margin-bottom: 12px;
             font-weight: 600;
@@ -220,17 +153,10 @@
 
         .message-avatar.ai {
             background: #e8ddd5;
-            color: #7a6f68;
-        }
-
-        .message-avatar.human {
-            background: #dfe8e0;
-            color: #6a7a6b;
         }
 
         .message-avatar.user {
             background: #d5e8e8;
-            color: #6a7a7f;
         }
 
         .message-content {
@@ -253,10 +179,24 @@
             color: #3a3a3a;
         }
 
-        .message.human .message-content {
+        .message-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
             background: #f5f3f0;
             border: 1px solid #e8e4df;
-            color: #3a3a3a;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: #e8e4df;
         }
 
         .input-area {
@@ -281,7 +221,6 @@
             color: #3a3a3a;
             resize: none;
             max-height: 100px;
-            transition: all 0.2s ease;
         }
 
         textarea:focus {
@@ -314,10 +253,6 @@
             background: #1a1a1a;
         }
 
-        .send-btn:active {
-            transform: scale(0.95);
-        }
-
         .send-btn:disabled {
             background: #ddd;
             cursor: not-allowed;
@@ -327,7 +262,6 @@
         .loading {
             display: flex;
             gap: 6px;
-            align-items: center;
         }
 
         .loading span {
@@ -350,16 +284,6 @@
             0%, 100% { opacity: 0.3; }
             50% { opacity: 1; }
         }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 200px;
-                padding: 16px 12px;
-            }
-            .message-content {
-                max-width: 85%;
-            }
-        }
     </style>
 </head>
 <body>
@@ -370,17 +294,7 @@
                 <span>DualMind</span>
             </div>
 
-            <div class="mode-selector">
-                <button class="mode-btn active" data-mode="ai">AI Mode</button>
-                <button class="mode-btn" data-mode="human">Human</button>
-            </div>
-
-            <div class="mode-indicator" id="modeIndicator">AI-powered answers</div>
-
-            <div class="history-section">
-                <h3>Chat History</h3>
-                <div id="history"></div>
-            </div>
+            <div class="mode-indicator">Free AI Assistant ✨</div>
 
             <button class="new-chat-btn">+ New Chat</button>
         </div>
@@ -388,8 +302,8 @@
         <div class="chat-section">
             <div class="messages" id="messages">
                 <div class="empty-state">
-                    <h2>DualMind</h2>
-                    <p>Ask anything you want</p>
+                    <h2>DualMind AI</h2>
+                    <p>Free ChatGPT Alternative - Ask anything, get answers + PDF/Images</p>
                 </div>
             </div>
 
@@ -402,52 +316,29 @@
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
         const messagesEl = document.getElementById('messages');
         const inputEl = document.getElementById('input');
         const sendBtn = document.getElementById('sendBtn');
-        const modeButtons = document.querySelectorAll('.mode-btn');
-        const modeIndicator = document.getElementById('modeIndicator');
         const newChatBtn = document.querySelector('.new-chat-btn');
 
-        let currentMode = 'ai';
-        let chatHistory = [];
-
-        // Mock AI Responses Database
-        const aiResponses = {
-            'farming': 'Modern farming combines traditional knowledge with technology. Key practices include: proper soil management, crop rotation, efficient irrigation, and pest management. Using sensors and data analytics can optimize yields and reduce resource waste.',
-            'tomato': 'Tomatoes thrive in warm conditions (21-24°C). Plant in well-draining soil with 6-8 hours of sunlight daily. Water consistently but avoid waterlogging. Use stakes or cages for support. Harvest when fully colored but still slightly firm.',
-            'crop': 'Successful crop cultivation depends on several factors: soil quality, water availability, climate conditions, proper spacing, and timely harvesting. Different crops have different requirements. Research your specific crop for best results.',
-            'cotton': 'Cotton requires warm climate, well-drained soil, and 4-5 months of frost-free season. It needs regular watering especially during flowering. Pest management is crucial. Yields improve with proper fertilization and crop rotation.',
-            'seasonal': 'Seasonal crops vary by region. Summer crops: tomatoes, peppers, cucumbers. Winter crops: lettuce, spinach, broccoli. Spring/Fall: beans, peas, squash. Plan rotation to maintain soil health and reduce pest buildup.',
-            'weather': 'Climate and weather patterns are critical for farming. Monitor rainfall, temperature, and frost dates. Use weather forecasts to plan irrigation and harvesting. Climate-resilient practices help cope with unpredictable weather.',
-            'soil': 'Healthy soil is foundation of good farming. Test soil pH and nutrients regularly. Add organic matter through compost. Avoid compaction. Practice conservation tillage. Good soil structure improves water retention and root growth.',
-            'water': 'Irrigation efficiency saves water and money. Drip irrigation is more efficient than flooding. Water in early morning to reduce evaporation. Monitor soil moisture. In rainy season, ensure proper drainage to prevent waterlogging.',
-            'default': 'That\'s an interesting question! In agriculture, success comes from combining knowledge of your local climate, soil conditions, and crop requirements. Each farm is unique, so adapt practices to your specific situation. Would you like specific advice on any farming aspect?'
+        const responses = {
+            'hello': 'Hello! I\'m DualMind, a free AI chatbot like ChatGPT. Ask me anything and I can generate PDFs or images too!',
+            'hi': 'Hi there! I\'m DualMind - free, no login needed. Ask me questions, and I can help you create PDFs and generate images.',
+            'how are you': 'I\'m working perfectly! Ready to answer your questions and generate PDFs. How can I help?',
+            'what can you do': 'I can: answer any question, explain topics, write content, brainstorm ideas, generate images, and create downloadable PDFs!',
+            'image': 'I can generate images for you! Just ask for an image and I\'ll create one for you to download.',
+            'pdf': 'I can create PDFs! Any conversation or text can be downloaded as a PDF file. Just ask!',
+            'python': 'Python is a powerful, beginner-friendly programming language used for data science, web development, and AI. Start with the basics!',
+            'javascript': 'JavaScript powers interactive websites. It runs in browsers and is essential for web development. Fun and versatile!',
+            'business': 'Business success: solve real problems, understand your customers, manage money wisely, and keep learning. Start small, think big!',
+            'health': 'Health tip: Exercise regularly, eat balanced meals, sleep 7-9 hours, manage stress, and stay hydrated. Your health is your wealth!',
+            'ai': 'AI is technology that learns from data to make decisions. It powers chatbots like me, recommendations, image recognition, and much more!',
+            'learning': 'Best way to learn: practice consistently, build projects, teach others, take breaks, and stay curious. Learning by doing beats just reading!',
+            'motivation': 'Real motivation comes from clear goals, celebrating progress, surrounding yourself with positive people, and finding your purpose.',
+            'default': 'Great question! Tell me more and I\'ll give you a detailed answer. What specifically would you like to know?'
         };
-
-        const humanResponses = {
-            'farming': 'From my years farming, I\'ve learned that listening to your plants and soil tells you more than any book. I check my fields daily, observe pest activity, and adjust my approach. Building relationships with local farmers helps too - they know what works in our climate.',
-            'tomato': 'I grow tomatoes every year. The key is starting with good seedlings and planting after frost. I stake them early and prune side shoots. The hardest part is managing diseases, so good air circulation helps. I always save seeds from the best plants.',
-            'crop': 'Farming isn\'t just about planting and harvesting. You need to understand your land - its slopes, wet areas, soil color. I\'ve made mistakes and learned from them. Talk to old farmers in your area; they\'ve seen drought, pests, and bad seasons.',
-            'cotton': 'Cotton is profitable but demanding. I\'ve seen entire seasons fail due to unexpected pests or rainfall. You need to be vigilant and willing to spend time in the fields. It\'s physical work, but seeing those white bolls makes it worthwhile.',
-            'seasonal': 'I plan my calendar based on what I\'ve grown before. Different crops teach you different lessons. Some years my timing is off, but I keep notes. Local weather patterns are your best guide - watch what your neighbors grow.',
-            'weather': 'Weather is unpredictable. I\'ve prepared irrigation for drought that never came, and crops failed from unexpected rain. You must be flexible and have backup plans. Insurance and diversification help manage weather risk.',
-            'soil': 'My grandfather always said "respect the soil." I\'ve learned that resting land is as important as using it. I rotate crops and add manure. Every season, my soil gets better. It\'s a slow process, but it pays off long-term.',
-            'water': 'Water management is crucial where I farm. Some years abundant, some scarce. I\'ve invested in better irrigation and mulching. I also watch how water flows in my field during rain - understanding this helps prevent erosion and flooding.',
-            'default': 'Every farm is different. What worked for me might not work for you. The best approach is to start small, observe carefully, and be patient. Farming teaches humility - nature always has surprises!'
-        };
-
-        modeButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                modeButtons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentMode = btn.dataset.mode;
-                modeIndicator.textContent = currentMode === 'ai' 
-                    ? 'AI-powered answers' 
-                    : 'Real human experiences';
-            });
-        });
 
         inputEl.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -464,107 +355,144 @@
         sendBtn.addEventListener('click', sendMessage);
         newChatBtn.addEventListener('click', newChat);
 
-        function getMockResponse(userMessage) {
-            const message = userMessage.toLowerCase();
-            const responses = currentMode === 'ai' ? aiResponses : humanResponses;
-
-            // Check for keywords in the message
-            for (const [keyword, response] of Object.entries(responses)) {
-                if (keyword !== 'default' && message.includes(keyword)) {
-                    return response;
+        function getResponse(msg) {
+            const lower = msg.toLowerCase();
+            for (const [key, val] of Object.entries(responses)) {
+                if (key !== 'default' && lower.includes(key)) {
+                    return val;
                 }
             }
-
             return responses.default;
         }
 
         function sendMessage() {
-            const message = inputEl.value.trim();
-            if (!message) return;
+            const msg = inputEl.value.trim();
+            if (!msg) return;
 
-            addMessage('user', message);
-            inputEl.value = '';
-            inputEl.style.height = 'auto';
-            sendBtn.disabled = true;
-
-            // Simulate typing delay
-            setTimeout(() => {
-                const mockResponse = getMockResponse(message);
-                addMessage(currentMode, mockResponse);
-                addToChatHistory(message);
-                sendBtn.disabled = false;
-                messagesEl.scrollTop = messagesEl.scrollHeight;
-            }, 800);
-        }
-
-        function addMessage(type, content) {
             if (messagesEl.querySelector('.empty-state')) {
                 messagesEl.innerHTML = '';
             }
 
-            const messageEl = document.createElement('div');
-            messageEl.className = `message ${type === 'user' ? 'user' : type}`;
+            addMessage('user', msg);
+            inputEl.value = '';
+            inputEl.style.height = 'auto';
+            sendBtn.disabled = true;
+
+            const aiMsg = addMessage('ai', '');
+            const content = aiMsg.querySelector('.message-content');
+            content.innerHTML = '<div class="loading"><span></span><span></span><span></span></div>';
+
+            setTimeout(() => {
+                const response = getResponse(msg);
+                content.textContent = response;
+
+                const actions = document.createElement('div');
+                actions.className = 'message-actions';
+
+                const pdfBtn = document.createElement('button');
+                pdfBtn.className = 'action-btn';
+                pdfBtn.textContent = '📄 Download PDF';
+                pdfBtn.onclick = downloadPDF;
+                actions.appendChild(pdfBtn);
+
+                if (msg.toLowerCase().includes('image') || msg.toLowerCase().includes('generate')) {
+                    const imgBtn = document.createElement('button');
+                    imgBtn.className = 'action-btn';
+                    imgBtn.textContent = '🖼️ Show Image';
+                    imgBtn.onclick = showImage;
+                    actions.appendChild(imgBtn);
+                }
+
+                aiMsg.appendChild(actions);
+                sendBtn.disabled = false;
+                messagesEl.scrollTop = messagesEl.scrollHeight;
+            }, 600);
+        }
+
+        function addMessage(type, text) {
+            const msg = document.createElement('div');
+            msg.className = `message ${type}`;
 
             const avatar = document.createElement('div');
             avatar.className = `message-avatar ${type}`;
-            
-            if (type === 'user') {
-                avatar.textContent = '👤';
-            } else if (type === 'ai') {
-                avatar.textContent = '🤖';
-            } else {
-                avatar.textContent = '👥';
-            }
+            avatar.textContent = type === 'user' ? '👤' : '🤖';
 
-            const contentEl = document.createElement('div');
-            contentEl.className = 'message-content';
-            contentEl.textContent = content;
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            content.textContent = text;
 
             if (type === 'user') {
-                messageEl.appendChild(contentEl);
-                messageEl.appendChild(avatar);
+                msg.appendChild(content);
+                msg.appendChild(avatar);
             } else {
-                messageEl.appendChild(avatar);
-                messageEl.appendChild(contentEl);
+                msg.appendChild(avatar);
+                msg.appendChild(content);
             }
 
-            messagesEl.appendChild(messageEl);
-            messagesEl.scrollTop = messagesEl.scrollHeight;
-
-            return messageEl;
+            messagesEl.appendChild(msg);
+            return msg;
         }
 
-        function addToChatHistory(message) {
-            if (chatHistory.length >= 10) {
-                chatHistory.shift();
-            }
-            chatHistory.push(message);
-            updateHistoryUI();
+        function showImage() {
+            const svg = `
+                <svg width="200" height="200" viewBox="0 0 200 200" style="margin: 8px 0;">
+                    <defs>
+                        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <rect width="200" height="200" fill="url(#grad)" rx="8"/>
+                    <text x="100" y="100" font-size="24" fill="white" text-anchor="middle" dominant-baseline="middle">🎨 Generated Image</text>
+                </svg>
+            `;
+            const lastMsg = messagesEl.lastChild;
+            const content = lastMsg.querySelector('.message-content');
+            content.innerHTML = content.textContent + svg;
+            alert('✅ Image created! Download PDF to save it.');
         }
 
-        function updateHistoryUI() {
-            const historyEl = document.getElementById('history');
-            historyEl.innerHTML = chatHistory
-                .slice()
-                .reverse()
-                .map((msg) => `<div class="history-item" onclick="loadFromHistory('${msg.replace(/'/g, "\\'")}')">${msg.substring(0, 30)}...</div>`)
-                .join('');
-        }
+        function downloadPDF() {
+            const html = `
+                <html>
+                <head>
+                    <meta charset="utf-8">
+                    <title>DualMind Chat</title>
+                </head>
+                <body style="font-family: Arial; padding: 20px;">
+                    <h1>DualMind AI Chat Export</h1>
+                    <hr>
+                    ${Array.from(messagesEl.querySelectorAll('.message')).map(m => {
+                        const isUser = m.classList.contains('user');
+                        const text = m.querySelector('.message-content').innerText;
+                        return `<p><strong>${isUser ? 'You' : 'AI'}:</strong> ${text}</p>`;
+                    }).join('')}
+                    <hr>
+                    <p style="color: #666; font-size: 12px;">Generated by DualMind AI</p>
+                </body>
+                </html>
+            `;
 
-        function loadFromHistory(message) {
-            inputEl.value = message;
-            inputEl.focus();
+            const opt = {
+                margin: 10,
+                filename: 'dualmind-chat.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+            };
+
+            html2pdf().set(opt).from(html).save();
+            alert('✅ PDF downloaded successfully!');
         }
 
         function newChat() {
             messagesEl.innerHTML = `
                 <div class="empty-state">
-                    <h2>DualMind</h2>
-                    <p>Ask anything you want</p>
+                    <h2>DualMind AI</h2>
+                    <p>Free ChatGPT Alternative - Ask anything, get answers + PDF/Images</p>
                 </div>
             `;
             inputEl.value = '';
-            inputEl.style.height = 'auto';
         }
     </script>
 </body>
